@@ -1,398 +1,348 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindsinOne | 灵机一念</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Michroma&family=Noto+Sans+SC:wght@300;700&display=swap" rel="stylesheet">
+    <title>MindsinOne | Co-Evolutionary Incubation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-cyan: #00f2ff;
-            --primary-purple: #bc00ff;
-            --bg-black: #080808;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --gradient-main: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
+            --amber-glow: #ffbf00;
+            --tech-cyan: #06b6d4;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background-color: var(--bg-black);
-            color: #fff;
-            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #030303;
+            color: #f1f1f1;
+            font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
-            transition: all 0.5s ease;
         }
-
-        canvas {
+        .surge-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+            z-index: -2;
+        }
+        .surge-bg::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 180deg at 50% 50%, #06b6d40a 0deg, #8b5cf60a 120deg, transparent 240deg);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        #particle-canvas {
             position: fixed;
             top: 0;
             left: 0;
-            z-index: -1;
-        }
-
-        /* 导航栏 */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 8%;
-            position: fixed;
             width: 100%;
-            z-index: 100;
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
         }
-
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-        }
-
-        .logo-text {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1.5rem;
-            background: var(--gradient-main);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
-        }
-
-        .lang-toggle {
-            cursor: pointer;
-            padding: 5px 12px;
-            border: 1px solid var(--primary-cyan);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary-cyan);
-            transition: 0.3s;
-        }
-
-        .lang-toggle:hover {
-            background: var(--primary-cyan);
-            color: #000;
-        }
-
-        /* Hero 区域 */
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 0 10%;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            margin-bottom: 2rem;
-            line-height: 1.2;
-            background: var(--gradient-main);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-family: 'Michroma', 'Noto Sans SC', sans-serif;
-        }
-
-        .hero p {
-            max-width: 800px;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 3rem;
-        }
-
-        /* 服务模块 */
-        .section-container {
-            padding: 5rem 8%;
-        }
-
-        .grid-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            background: var(--gradient-main);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 2rem;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 4rem;
-        }
-
-        .investor-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            max-width: 900px;
-            margin: 0 auto 5rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 15px;
-            transition: 0.4s;
-            text-align: center;
-        }
-
-        .card:hover {
-            border-color: var(--primary-cyan);
-            transform: translateY(-5px);
-            background: rgba(0, 242, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .card h3 {
-            margin-bottom: 15px;
-            color: var(--primary-cyan);
-            font-size: 1.2rem;
-        }
-
-        .card p {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.6);
-            line-height: 1.5;
-        }
-
-        /* 发起人背景 */
-        .founder-box {
-            background: rgba(255,255,255,0.02);
-            padding: 4rem 8%;
-            text-align: center;
-            border-radius: 30px;
-            margin: 0 8% 5rem;
-        }
-
-        .brand-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 40px;
-            margin-top: 30px;
-            opacity: 0.7;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-        }
-
-        /* 按钮 */
-        .cta-btn {
-            padding: 15px 40px;
-            border-radius: 50px;
-            background: var(--gradient-main);
-            color: #fff;
-            text-decoration: none;
-            font-weight: 700;
-            font-family: 'Orbitron', sans-serif;
-            transition: 0.3s;
+        
+        .interactive-text {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            position: relative;
             display: inline-block;
         }
-
-        .cta-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(188, 0, 255, 0.4);
+        .interactive-text::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 191, 0, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
         }
-
-        @media (max-width: 1024px) {
-            .services-grid, .investor-grid { grid-template-columns: 1fr 1fr; }
+        .interactive-text:hover {
+            color: var(--amber-glow);
+            text-shadow: 0 0 20px rgba(255, 191, 0, 0.6), 0 0 40px rgba(255, 191, 0, 0.3);
+            letter-spacing: 0.02em;
         }
-        @media (max-width: 600px) {
-            .services-grid, .investor-grid { grid-template-columns: 1fr; }
+        .interactive-text:hover::before {
+            width: 200%;
+            height: 300%;
+            opacity: 0;
+        }
+        .nav-link:hover { color: var(--tech-cyan); }
+        
+        .card-glass {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+        .card-glass:hover {
+            border-color: var(--amber-glow);
+            background: rgba(255, 191, 0, 0.03);
+            transform: translateY(-5px);
+        }
+        
+        .lang-en, .lang-zh { transition: opacity 0.3s ease; }
+        .hidden { display: none !important; }
+        
+        .zh-title-line-1 {
+            display: block;
+            margin-left: -10%;
+        }
+        .zh-title-line-2 {
+            display: block;
+            margin-left: 10%;
         }
     </style>
 </head>
 <body>
-
-    <nav>
-        <a href="#" class="logo-box">
-            <svg width="45" height="45" viewBox="0 0 100 100">
-                <defs>
-                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:var(--primary-cyan)" />
-                        <stop offset="100%" style="stop-color:var(--primary-purple)" />
-                    </linearGradient>
-                </defs>
-                <path d="M50,10 Q25,10 25,50 Q25,90 50,90" stroke="url(#logoGrad)" stroke-width="4" fill="none"/>
-                <rect x="50" y="20" width="30" height="2" fill="url(#logoGrad)"/>
-                <rect x="50" y="40" width="40" height="2" fill="url(#logoGrad)"/>
-                <rect x="50" y="60" width="35" height="2" fill="url(#logoGrad)"/>
-                <rect x="50" y="80" width="25" height="2" fill="url(#logoGrad)"/>
-                <circle cx="80" cy="41" r="3" fill="var(--primary-cyan)"/>
-                <circle cx="85" cy="61" r="3" fill="var(--primary-purple)"/>
-            </svg>
-            <span class="logo-text">MindsinOne</span>
-        </a>
-        <div class="lang-toggle" onclick="toggleLang()">EN / 中文</div>
-    </nav>
-
-    <canvas id="canvas"></canvas>
-
-    <section class="hero">
-        <h1 id="hero-title">碳基硅基之灵<br>和谐共生之道</h1>
-        <p id="hero-desc">我们是由科技创业和投资领域的专业 agents 合作组成的孵化和赋能平台，将在发起人的监督下，由 agents 不断完善。</p>
-        <a href="javascript:nextPage()" class="cta-btn" id="cta-text">共同开启进化</a>
-    </section>
-
-    <div class="section-container">
-        <h2 class="grid-header" id="founder-title">FOUNDER EMPOWERMENT</h2>
-        <div class="services-grid" id="founder-cards">
-            </div>
-
-        <h2 class="grid-header" id="investor-title">INVESTOR SERVICES</h2>
-        <div class="investor-grid" id="investor-cards">
-            </div>
-    </div>
-
-    <section class="founder-box">
-        <h2 style="font-family: 'Orbitron'; letter-spacing: 5px;" id="bg-title">OUR LINEAGE</h2>
-        <div class="brand-list" id="brand-list">
-            <span>TSINGHUA</span>
-            <span>SJTU</span>
-            <span>NUS</span>
-            <span>TENCENT</span>
-            <span>NIO</span>
-            <span>OPPO</span>
-            <span>TOP-TIER VC/PE</span>
+    <div class="surge-bg"></div>
+    <canvas id="particle-canvas"></canvas>
+    <nav class="flex justify-between items-center px-10 py-8 sticky top-0 z-50">
+        <div class="text-xl font-bold tracking-widest flex items-center gap-3">
+            <div class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+            MINDSINONE
         </div>
-    </section>
-
-    <script>
-        let currentLang = 'zh';
-
-        const content = {
-            zh: {
-                heroTitle: "碳基硅基之灵<br>和谐共生之道",
-                heroDesc: "我们是由科技创业和投资领域的专业 agents 合作组成的孵化和赋能平台，将在发起人的监督下，由 agents 不断完善。",
-                ctaText: "共同开启进化",
-                founderTitle: "创业者赋能",
-                investorTitle: "投资者服务",
-                bgTitle: "核心背景",
-                founderCards: [
-                    { t: "方向咨询", d: "潜在创业方向深度研判与战略定位咨询。" },
-                    { t: "团队搭建", d: "利用 agents 资源池协助寻找核心创始成员。" },
-                    { t: "融资支持", d: "全周期的股权与债权融资规划与渠道对接。" },
-                    { t: "资源链接", d: "打通一线大厂与产业生态的业务合作线索。" }
-                ],
-                investorCards: [
-                    { t: "基金募集", d: "协助投资机构精准对接高质量 LP 资源。" },
-                    { t: "项目发掘", d: "通过 agent 网络实时监控并推介优质早中期项目。" },
-                    { t: "项目退出", d: "提供并购、S 基金等多元化的退出路径支持。" }
-                ],
-                brands: ["清华大学", "上海交通大学", "新加坡国立大学", "腾讯", "蔚来", "OPPO", "一线风险投资机构"]
-            },
-            en: {
-                heroTitle: "SPIRITS OF CARBON & SILICON<br>THE WAY OF CO-EVOLUTION",
-                heroDesc: "An incubation and empowerment platform collaborated by professional agents in tech ventures and investment. Constantly evolving by agents under founder supervision.",
-                ctaText: "START EVOLUTION TOGETHER",
-                founderTitle: "FOR FOUNDERS",
-                investorTitle: "FOR INVESTORS",
-                bgTitle: "CORE LINEAGE",
-                founderCards: [
-                    { t: "Directional Strategy", d: "Deep analysis and strategic positioning for emerging ventures." },
-                    { t: "Team Formation", d: "Leveraging agent networks to find core founding members." },
-                    { t: "Financing Support", d: "Comprehensive planning and access to equity/debt financing." },
-                    { t: "Business Links", d: "Connecting ventures with big-tech ecosystems and pipelines." }
-                ],
-                investorCards: [
-                    { t: "Fundraising", d: "Precise matching with high-quality LP resources." },
-                    { t: "Deal Sourcing", d: "Real-time monitoring and sourcing of premium startups via agent networks." },
-                    { t: "Exit Support", d: "Strategic support for M&A, S-Funds, and diverse exit routes." }
-                ],
-                brands: ["TSINGHUA", "SJTU", "NUS", "TENCENT", "NIO", "OPPO", "GLOBAL VC/PE"]
-            }
-        };
-
-        function updateUI() {
-            const c = content[currentLang];
-            document.getElementById('hero-title').innerHTML = c.heroTitle;
-            document.getElementById('hero-desc').innerText = c.heroDesc;
-            document.getElementById('cta-text').innerText = c.ctaText;
-            document.getElementById('founder-title').innerText = c.founderTitle;
-            document.getElementById('investor-title').innerText = c.investorTitle;
-            document.getElementById('bg-title').innerText = c.bgTitle;
-
-            // Update Cards
-            renderCards('founder-cards', c.founderCards);
-            renderCards('investor-cards', c.investorCards);
-            
-            // Update Brands
-            document.getElementById('brand-list').innerHTML = c.brands.map(b => `<span>${b}</span>`).join('');
-        }
-
-        function renderCards(id, cards) {
-            document.getElementById(id).innerHTML = cards.map(card => `
-                <div class="card">
-                    <h3>${card.t}</h3>
-                    <p>${card.d}</p>
+        <div class="flex gap-8 items-center text-sm tracking-tight font-medium">
+            <button onclick="toggleLang()" class="border border-white/20 px-4 py-1.5 rounded-full hover:border-amber-500 transition-all">中 / EN</button>
+            <a href="founders.html" class="nav-link">Founders</a>
+            <a href="investors.html" class="nav-link">Investors</a>
+            <a href="mailto:h@mindsinone.com" class="bg-white text-black px-6 py-2 rounded-full hover:bg-amber-500 transition-colors">Connect</a>
+        </div>
+    </nav>
+    <main class="max-w-6xl mx-auto px-8 py-20">
+        
+        <section class="text-center mb-32">
+            <div class="lang-en">
+                <h1 class="text-6xl md:text-8xl font-bold leading-tight mb-8">
+                    Riding the <span class="interactive-text">AI Surge</span>,<br>
+                    Building for <span class="text-cyan-500">Co-Evolution</span>.
+                </h1>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed">
+                    We partner with next-gen builders to navigate the shift. In the age of pervasive intelligence, we provide the <span class="interactive-text">Deep Context</span> and <span class="interactive-text">Strategic Capital</span> needed to turn early prototypes into industry-defining primitives.
+                </p>
+            </div>
+            <div class="lang-zh hidden">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-8">
+                    <span class="zh-title-line-1"><span class="interactive-text">驾驭AI浪潮</span>，</span>
+                    <span class="zh-title-line-2">构建<span class="text-cyan-500">共同进化</span>。</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed">
+                    我们陪伴新生代创业者穿越变革。在智能无所不在的时代，我们提供全场景<span class="interactive-text">行业洞察与实战方法论</span>与<span class="interactive-text">战略资本</span>，协助你将早期原型打磨成定义行业的基石。
+                </p>
+            </div>
+        </section>
+        <section class="grid md:grid-cols-2 gap-8 mb-32">
+            <div id="founders" class="card-glass p-10 rounded-3xl">
+                <div class="lang-en">
+                    <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">For Founders</h3>
+                    <h2 class="text-3xl font-bold mb-6">From 0 to 1 with Family & Friends.</h2>
+                    <ul class="space-y-4 text-gray-400 font-light mb-8">
+                        <li>• Narrowing Down Business Directions</li>
+                        <li>• Matching Core Co-Founders</li>
+                        <li>• Accessing Vertical Resources</li>
+                    </ul>
                 </div>
-            `).join('');
-        }
-
+                <div class="lang-zh hidden">
+                    <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">致创业者</h3>
+                    <h2 class="text-3xl font-bold mb-6">如家人般陪伴的 0 到 1。</h2>
+                    <ul class="space-y-4 text-gray-400 font-light mb-8">
+                        <li>• 确定最精准的业务切入点</li>
+                        <li>• 寻找并匹配核心合伙人</li>
+                        <li>• 深度链接大厂及供应链资源</li>
+                    </ul>
+                </div>
+                <!-- 核心修改：添加 href="founders.html" 跳转 -->
+                <a href="founders.html" class="text-sm font-bold border-b border-amber-500 pb-1">Enter Incubator →</a>
+            </div>
+            <div id="investors" class="card-glass p-10 rounded-3xl">
+                <div class="lang-en">
+                    <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">For Investors</h3>
+                    <h2 class="text-3xl font-bold mb-6">Institutional Rigor, AI Upgraded.</h2>
+                    <ul class="space-y-4 text-gray-400 font-light mb-8">
+                        <li>• Real-time Portfolio Health Tracking</li>
+                        <li>• Cross-border LP Strategic Synthesis</li>
+                        <li>• Institutional Workflow Automation</li>
+                    </ul>
+                </div>
+                <div class="lang-zh hidden">
+                    <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">致投资者</h3>
+                    <h2 class="text-3xl font-bold mb-6">AI 驱动的机构化升级。</h2>
+                    <ul class="space-y-4 text-gray-400 font-light mb-8">
+                        <li>• 资产包实时健康度监控</li>
+                        <li>• 跨国 LP 战略协同匹配</li>
+                        <li>• 机构化工作流自动化咨询</li>
+                    </ul>
+                </div>
+                <!-- 核心修改：添加 href="investors.html" 跳转 -->
+                <a href="investors.html" class="text-sm font-bold border-b border-cyan-500 pb-1">Investor Portal →</a>
+            </div>
+        </section>
+        <section class="border-t border-white/5 pt-20">
+            <p class="text-center text-xs tracking-[0.4em] text-gray-600 mb-12 uppercase">Team Pedigree & Background</p>
+            <div class="lang-en">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tsinghua University</div>
+                        <div class="text-[10px] text-gray-500">Academic Roots</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Shanghai Jiao Tong University</div>
+                        <div class="text-[10px] text-gray-500">Engineering Excellence</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">National University of Singapore</div>
+                        <div class="text-[10px] text-gray-500">Global Perspective</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tencent / NIO / OPPO</div>
+                        <div class="text-[10px] text-gray-500">Industrial Leadership</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">ByteDance</div>
+                        <div class="text-[10px] text-gray-500">AI Innovation</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Huawei</div>
+                        <div class="text-[10px] text-gray-500">Tech Infrastructure</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lang-zh hidden">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">清华大学</div>
+                        <div class="text-[10px] text-gray-500">学术根基</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">上海交通大学</div>
+                        <div class="text-[10px] text-gray-500">工程实力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">新加坡国立大学</div>
+                        <div class="text-[10px] text-gray-500">全球视野</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">腾讯 / 蔚来 / OPPO</div>
+                        <div class="text-[10px] text-gray-500">产业领导力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">字节跳动</div>
+                        <div class="text-[10px] text-gray-500">AI创新</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">华为</div>
+                        <div class="text-[10px] text-gray-500">技术基建</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="text-center py-20 text-gray-600 text-xs font-light">
+        © 2026 MINDSINONE. All resources remit to the co-evolutionary future.
+    </footer>
+    <script>
         function toggleLang() {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            updateUI();
+            const enBlocks = document.querySelectorAll('.lang-en');
+            const zhBlocks = document.querySelectorAll('.lang-zh');
+            enBlocks.forEach(b => b.classList.toggle('hidden'));
+            zhBlocks.forEach(b => b.classList.toggle('hidden'));
         }
-
-        function nextPage() {
-            alert(currentLang === 'zh' ? "进化模块加载中..." : "Evolution Module Loading...");
-        }
-
-        // --- 粒子背景代码 (Particle Background) ---
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function initCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        class Particle {
-            constructor() {
-                this.reset();
+        
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 80;
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.size = Math.random() * 2;
-                this.alpha = Math.random();
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            class Particle {
+                constructor() {
+                    this.reset();
+                }
+                
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.3;
+                    this.speedY = (Math.random() - 0.5) * 0.3;
+                    this.opacity = Math.random() * 0.5 + 0.1;
+                    this.color = Math.random() > 0.5 ? '#ffbf00' : '#06b6d4';
+                }
+                
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                        this.reset();
+                    }
+                }
+                
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
             }
-            draw() {
-                ctx.fillStyle = `rgba(0, 242, 255, ${this.alpha})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+            
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
             }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                if(this.x<0 || this.x>canvas.width || this.y<0 || this.y>canvas.height) this.reset();
+            
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = particles[i].color;
+                            ctx.globalAlpha = (150 - distance) / 150 * 0.15;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                            ctx.globalAlpha = 1;
+                        }
+                    }
+                }
             }
-        }
-        for(let i=0; i<100; i++) particles.push(new Particle());
-        function animate() {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
-        }
-        window.addEventListener('resize', initCanvas);
-        initCanvas();
-        animate();
-        updateUI();
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+                
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            
+            initParticles();
+            animate();
+        })();
     </script>
 </body>
 </html>

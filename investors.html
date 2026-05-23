@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindsinOne | Investors' Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amber-glow: #ffbf00;
+            --tech-cyan: #06b6d4;
+        }
+        body {
+            background-color: #030303;
+            color: #f1f1f1;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        /* 动态流动背景 */
+        .surge-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+            z-index: -2;
+        }
+        .surge-bg::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 180deg at 50% 50%, #06b6d40a 0deg, #8b5cf60a 120deg, transparent 240deg);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Canvas粒子背景 */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* 星星之火交互 */
+        .interactive-text {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            position: relative;
+            display: inline-block;
+        }
+        .interactive-text::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+        .interactive-text:hover {
+            color: var(--tech-cyan);
+            text-shadow: 0 0 20px rgba(6, 182, 212, 0.6), 0 0 40px rgba(6, 182, 212, 0.3);
+            letter-spacing: 0.02em;
+        }
+        .interactive-text:hover::before {
+            width: 200%;
+            height: 300%;
+            opacity: 0;
+        }
+        .nav-link:hover { color: var(--amber-glow); }
+        
+        .card-glass {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+        .card-glass:hover {
+            border-color: var(--tech-cyan);
+            background: rgba(6, 182, 212, 0.03);
+            transform: translateY(-5px);
+        }
+        
+        .card-glass-special {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+        .card-glass-special:hover {
+            border-color: var(--tech-cyan);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            transform: translateY(-5px);
+        }
+        
+        /* 语言显示切换 */
+        .lang-en, .lang-zh { transition: opacity 0.3s ease; }
+        .hidden { display: none !important; }
+        
+        /* 中文大标题梯形排版 */
+        .zh-title-line-1 {
+            display: block;
+            margin-left: -10%;
+        }
+        .zh-title-line-2 {
+            display: block;
+            margin-left: 10%;
+        }
+        
+        /* 滚动渐入动画 */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 返回按钮样式 */
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            color: var(--tech-cyan);
+            transform: translateX(-5px);
+        }
+        
+        /* 模块图标样式 */
+        .module-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="surge-bg"></div>
+    <canvas id="particle-canvas"></canvas>
+    <nav class="flex justify-between items-center px-10 py-8 sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <a href="index.html" class="back-btn flex items-center gap-2 text-sm text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Home
+            </a>
+            <div class="text-xl font-bold tracking-widest flex items-center gap-3">
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                MINDSINONE
+            </div>
+        </div>
+        <div class="flex gap-8 items-center text-sm tracking-tight font-medium">
+            <button onclick="toggleLang()" class="border border-white/20 px-4 py-1.5 rounded-full hover:border-cyan-500 transition-all">中 / EN</button>
+            <a href="founders.html" class="nav-link">Founders</a>
+            <a href="mailto:h@mindsinone.com" class="bg-white text-black px-6 py-2 rounded-full hover:bg-cyan-500 transition-colors">Connect</a>
+        </div>
+    </nav>
+    <main class="max-w-6xl mx-auto px-8 py-20">
+        
+        <!-- Hero Section -->
+        <section class="text-center mb-32 scroll-reveal">
+            <div class="lang-en">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-8">
+                    <span class="interactive-text text-cyan-500">Precision in the Age of Surge.</span><br>
+                    <span class="text-amber-500">Turn Uncertainty into Alpha.</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-4xl mx-auto font-light leading-relaxed">
+                    Institutional rigor, reimagined for the AI era. We turn <span class="interactive-text">black-box</span> venture capital into a transparent, <span class="interactive-text">data-driven</span> discipline.
+                </p>
+            </div>
+            <div class="lang-zh hidden">
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-8">
+                    <span class="zh-title-line-1"><span class="interactive-text text-cyan-500">浪潮时代的精准投资</span>，</span>
+                    <span class="zh-title-line-2"><span class="text-amber-500">将不确定性转化为超额收益</span>。</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-4xl mx-auto font-light leading-relaxed">
+                    为AI时代重新定义机构化严谨性。我们将<span class="interactive-text">黑箱式</span>风险投资转化为透明、<span class="interactive-text">数据驱动</span>的科学。
+                </p>
+            </div>
+        </section>
+        
+        <!-- Modules Section -->
+        <section class="space-y-12">
+            <!-- Module 1: Real-time Portfolio Health -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">Module 01 — Real-time Portfolio Health</h3>
+                        <h2 class="text-3xl font-bold mb-6">Beyond Quarterly Reports: Live Portfolio Intelligence.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            Our AI agent network delivers 24/7 granular insights into revenue, user growth, and team health—turning black-box investing into a real-time command center.
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">Explore Dashboard →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">模块 01 — 投后实时健康度</h3>
+                        <h2 class="text-3xl font-bold mb-6">超越季度报告：实时投资组合智能。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们的AI代理网络提供7×24小时的收入、用户增长和团队健康度细粒度洞察，将黑箱投资变成实时指挥中心。
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">查看仪表盘 →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 2: Strategic LP Synthesis -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">Module 02 — Strategic LP Synthesis</h3>
+                        <h2 class="text-3xl font-bold mb-6">Strategic LP Matching, Not Just Capital Raising.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            We connect you with LPs who bring deep industry expertise, customer networks, and follow-on capital—creating compounding value beyond the check.
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">Meet LPs →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">模块 02 — LP 战略协同匹配</h3>
+                        <h2 class="text-3xl font-bold mb-6">战略LP匹配，而非单纯募资。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们为你对接拥有深厚产业经验、客户网络和续投能力的LP，创造超越资本本身的复利价值。
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">对接LP →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 3: Institutional Evolution Consulting -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">Module 03 — Institutional Evolution</h3>
+                        <h2 class="text-3xl font-bold mb-6">AI-Native Institutional Upgrade.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            We help traditional GPs integrate end-to-end AI toolchains into sourcing, due diligence, and decision-making—cutting DD time by 70% and improving hit rates.
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">Upgrade Your Firm →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">模块 03 — 机构化进化咨询</h3>
+                        <h2 class="text-3xl font-bold mb-6">AI原生机构化升级。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们帮助传统GP将端到端AI工具链融入项目挖掘、尽调和决策全流程，将尽调时间缩短70%，提升投资命中率。
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">升级你的机构 →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 4: Exit Strategy Optimization -->
+            <div class="scroll-reveal">
+                <div class="card-glass-special p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">Module 04 — Exit Optimization</h3>
+                        <h2 class="text-3xl font-bold mb-6">Global Exit Orchestration.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            Strategic advisory for cross-border M&A, secondary transactions, and S-funds—maximizing liquidity in an increasingly fragmented global market.
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">Plan Your Exit →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">模块 04 — 退出路径优化</h3>
+                        <h2 class="text-3xl font-bold mb-6">全球退出 Orchestration。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            为你提供跨境并购、二级交易和S基金的战略咨询，在日益碎片化的全球市场中最大化流动性。
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">规划退出路径 →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Team Pedigree Section -->
+        <section class="border-t border-white/5 pt-20 mt-32 scroll-reveal">
+            <p class="text-center text-xs tracking-[0.4em] text-gray-600 mb-12 uppercase">Our Network</p>
+            <div class="lang-en">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tsinghua University</div>
+                        <div class="text-[10px] text-gray-500">Academic Roots</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Shanghai Jiao Tong University</div>
+                        <div class="text-[10px] text-gray-500">Engineering Excellence</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">National University of Singapore</div>
+                        <div class="text-[10px] text-gray-500">Global Perspective</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tencent / NIO / OPPO</div>
+                        <div class="text-[10px] text-gray-500">Industrial Leadership</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">ByteDance</div>
+                        <div class="text-[10px] text-gray-500">AI Innovation</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Huawei</div>
+                        <div class="text-[10px] text-gray-500">Tech Infrastructure</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lang-zh hidden">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">清华大学</div>
+                        <div class="text-[10px] text-gray-500">学术根基</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">上海交通大学</div>
+                        <div class="text-[10px] text-gray-500">工程实力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">新加坡国立大学</div>
+                        <div class="text-[10px] text-gray-500">全球视野</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">腾讯 / 蔚来 / OPPO</div>
+                        <div class="text-[10px] text-gray-500">产业领导力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">字节跳动</div>
+                        <div class="text-[10px] text-gray-500">AI创新</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">华为</div>
+                        <div class="text-[10px] text-gray-500">技术基建</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="text-center py-20 text-gray-600 text-xs font-light">
+        © 2026 MINDSINONE. All resources remit to the co-evolutionary future.
+    </footer>
+    <script>
+        function toggleLang() {
+            const enBlocks = document.querySelectorAll('.lang-en');
+            const zhBlocks = document.querySelectorAll('.lang-zh');
+            enBlocks.forEach(b => b.classList.toggle('hidden'));
+            zhBlocks.forEach(b => b.classList.toggle('hidden'));
+        }
+        
+        // Canvas粒子系统 - 变革狂潮 (投资者页面以青色为主)
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 100;
+            
+            // 设置画布大小
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 粒子类
+            class Particle {
+                constructor() {
+                    this.reset();
+                }
+                
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.3;
+                    this.speedY = (Math.random() - 0.5) * 0.3;
+                    this.opacity = Math.random() * 0.5 + 0.1;
+                    // 投资者页面以青色为主
+                    this.color = Math.random() > 0.3 ? '#06b6d4' : '#ffbf00';
+                }
+                
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    // 边界检测
+                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                        this.reset();
+                    }
+                }
+                
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            // 初始化粒子
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            
+            // 绘制连接线
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = particles[i].color;
+                            ctx.globalAlpha = (150 - distance) / 150 * 0.15;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                            ctx.globalAlpha = 1;
+                        }
+                    }
+                }
+            }
+            
+            // 动画循环
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+                
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            
+            initParticles();
+            animate();
+        })();
+        
+        // 滚动渐入动画
+        (function() {
+            const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+            
+            const revealOnScroll = function() {
+                scrollRevealElements.forEach(el => {
+                    const elementTop = el.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < window.innerHeight - elementVisible) {
+                        el.classList.add('revealed');
+                    }
+                });
+            };
+            
+            window.addEventListener('scroll', revealOnScroll);
+            revealOnScroll(); // 初始检查
+        })();
+    </script>
+</body>
+</html>

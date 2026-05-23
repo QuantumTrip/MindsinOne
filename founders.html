@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindsinOne | Founders' Sanctuary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amber-glow: #ffbf00;
+            --tech-cyan: #06b6d4;
+        }
+        body {
+            background-color: #030303;
+            color: #f1f1f1;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        /* 动态流动背景 */
+        .surge-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+            z-index: -2;
+        }
+        .surge-bg::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 180deg at 50% 50%, #06b6d40a 0deg, #8b5cf60a 120deg, transparent 240deg);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Canvas粒子背景 */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* 星星之火交互 */
+        .interactive-text {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            position: relative;
+            display: inline-block;
+        }
+        .interactive-text::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 191, 0, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+        .interactive-text:hover {
+            color: var(--amber-glow);
+            text-shadow: 0 0 20px rgba(255, 191, 0, 0.6), 0 0 40px rgba(255, 191, 0, 0.3);
+            letter-spacing: 0.02em;
+        }
+        .interactive-text:hover::before {
+            width: 200%;
+            height: 300%;
+            opacity: 0;
+        }
+        .nav-link:hover { color: var(--tech-cyan); }
+        
+        .card-glass {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+        .card-glass:hover {
+            border-color: var(--amber-glow);
+            background: rgba(255, 191, 0, 0.03);
+            transform: translateY(-5px);
+        }
+        
+        .card-glass-special {
+            background: linear-gradient(135deg, rgba(255, 191, 0, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 191, 0, 0.2);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+        .card-glass-special:hover {
+            border-color: var(--amber-glow);
+            background: linear-gradient(135deg, rgba(255, 191, 0, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            transform: translateY(-5px);
+        }
+        
+        /* 语言显示切换 */
+        .lang-en, .lang-zh { transition: opacity 0.3s ease; }
+        .hidden { display: none !important; }
+        
+        /* 中文大标题梯形排版 */
+        .zh-title-line-1 {
+            display: block;
+            margin-left: -10%;
+        }
+        .zh-title-line-2 {
+            display: block;
+            margin-left: 10%;
+        }
+        
+        /* 滚动渐入动画 */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 返回按钮样式 */
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            color: var(--amber-glow);
+            transform: translateX(-5px);
+        }
+        
+        /* 模块图标样式 */
+        .module-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="surge-bg"></div>
+    <canvas id="particle-canvas"></canvas>
+    <nav class="flex justify-between items-center px-10 py-8 sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <a href="index.html" class="back-btn flex items-center gap-2 text-sm text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Home
+            </a>
+            <div class="text-xl font-bold tracking-widest flex items-center gap-3">
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+                MINDSINONE
+            </div>
+        </div>
+        <div class="flex gap-8 items-center text-sm tracking-tight font-medium">
+            <button onclick="toggleLang()" class="border border-white/20 px-4 py-1.5 rounded-full hover:border-amber-500 transition-all">中 / EN</button>
+            <a href="investors.html" class="nav-link">Investors</a>
+            <a href="mailto:h@mindsinone.com" class="bg-white text-black px-6 py-2 rounded-full hover:bg-amber-500 transition-colors">Connect</a>
+        </div>
+    </nav>
+    <main class="max-w-6xl mx-auto px-8 py-20">
+        
+        <!-- Hero Section -->
+        <section class="text-center mb-32 scroll-reveal">
+            <div class="lang-en">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-8">
+                    <span class="interactive-text text-amber-500">From Chaos to Convergence.</span><br>
+                    <span class="text-cyan-500">Build Your Moat Before the Surge.</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-4xl mx-auto font-light leading-relaxed">
+                    We don't just write checks. We <span class="interactive-text">co-build</span>. In the AI revolution's whitewater, we are your <span class="interactive-text">first believer</span>, your operational co-pilot, and your unshakable anchor.
+                </p>
+            </div>
+            <div class="lang-zh hidden">
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-8">
+                    <span class="zh-title-line-1"><span class="interactive-text text-amber-500">从混沌到收敛</span>，</span>
+                    <span class="zh-title-line-2"><span class="text-cyan-500">在浪潮来临前筑牢护城河</span>。</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-4xl mx-auto font-light leading-relaxed">
+                    我们不只是开一张支票。我们是<span class="interactive-text">联合建造者</span>。在AI革命的激流中，做你<span class="interactive-text">第一个相信者</span>、实战副驾驶和最稳固的锚点。
+                </p>
+            </div>
+        </section>
+        
+        <!-- Modules Section -->
+        <section class="space-y-12">
+            <!-- Module 1: Origin & Direction -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">Module 01 — Origin & Direction</h3>
+                        <h2 class="text-3xl font-bold mb-6">AI-Powered Signal Extraction + Human Industry Wisdom.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            We cut through the hype to find your non-obvious 0-to-1 leverage point—the one that turns a prototype into a category king.
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">Explore Direction →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">模块 01 — 原点与方向</h3>
+                        <h2 class="text-3xl font-bold mb-6">AI信号提取 + 人类产业智慧。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们穿透炒作泡沫，找到你那个非显而易见的0到1杠杆点——那个能把原型变成品类之王的支点。
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">探索方向 →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 2: The Genesis Team -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">Module 02 — The Genesis Team</h3>
+                        <h2 class="text-3xl font-bold mb-6">Your Carbon-Based Co-Founder Matchmaking.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            We tap into our exclusive network of 10,000+ top engineers, researchers, and operators from Tsinghua, SJTU, NUS, ByteDance, Tencent, and Huawei to find your ride-or-die co-founders.
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">Find Your Team →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-cyan-500 text-sm tracking-widest uppercase mb-4">模块 02 — 创世团队</h3>
+                        <h2 class="text-3xl font-bold mb-6">碳基合伙人精准匹配。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们打通覆盖清华、上交、新国大及字节、腾讯、华为等大厂的10000+顶尖人才网络，为你找到能共赴浪潮的生死合伙人。
+                        </p>
+                        <button class="text-sm font-bold border-b border-cyan-500 pb-1">寻找团队 →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 3: Global Business Leads -->
+            <div class="scroll-reveal">
+                <div class="card-glass p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">Module 03 — Global Business Leads</h3>
+                        <h2 class="text-3xl font-bold mb-6">Instant Access to Global Growth Levers.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            Direct pipelines into China-Mexico manufacturing synergy, Big Tech API ecosystems, and enterprise pilot opportunities that cut your time-to-revenue by 50%.
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">Unlock Resources →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">模块 03 — 全球业务引擎</h3>
+                        <h2 class="text-3xl font-bold mb-6">一键接入全球增长杠杆。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            直达中墨制造协同、大厂API生态和企业级试点机会，帮你将收入落地时间缩短50%。
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">解锁资源 →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module 4: The Family & Friends Bond -->
+            <div class="scroll-reveal">
+                <div class="card-glass-special p-10 rounded-3xl">
+                    <div class="lang-en">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">Module 04 — The F&F Bond</h3>
+                        <h2 class="text-3xl font-bold mb-6">The Family & Friends Promise.</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            We celebrate your wins quietly and show up in your valleys loudly. No boardroom politics, no punitive terms—just unwavering support when you need it most.
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">Learn Our Philosophy →</button>
+                    </div>
+                    <div class="lang-zh hidden">
+                        <div class="module-icon">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-amber-500 text-sm tracking-widest uppercase mb-4">模块 04 — F&F 契约</h3>
+                        <h2 class="text-3xl font-bold mb-6">家人与朋友式承诺。</h2>
+                        <p class="text-gray-400 font-light leading-relaxed mb-8">
+                            我们在你高光时默默鼓掌，在你低谷时挺身而出。没有会议室政治，没有惩罚性条款，只有你最需要时坚定不移的支持。
+                        </p>
+                        <button class="text-sm font-bold border-b border-amber-500 pb-1">了解我们的理念 →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Team Pedigree Section -->
+        <section class="border-t border-white/5 pt-20 mt-32 scroll-reveal">
+            <p class="text-center text-xs tracking-[0.4em] text-gray-600 mb-12 uppercase">Our Network</p>
+            <div class="lang-en">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tsinghua University</div>
+                        <div class="text-[10px] text-gray-500">Academic Roots</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Shanghai Jiao Tong University</div>
+                        <div class="text-[10px] text-gray-500">Engineering Excellence</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">National University of Singapore</div>
+                        <div class="text-[10px] text-gray-500">Global Perspective</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Tencent / NIO / OPPO</div>
+                        <div class="text-[10px] text-gray-500">Industrial Leadership</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">ByteDance</div>
+                        <div class="text-[10px] text-gray-500">AI Innovation</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">Huawei</div>
+                        <div class="text-[10px] text-gray-500">Tech Infrastructure</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lang-zh hidden">
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-y-12 gap-x-8 text-center items-center opacity-40 hover:opacity-100 transition-opacity duration-700">
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">清华大学</div>
+                        <div class="text-[10px] text-gray-500">学术根基</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">上海交通大学</div>
+                        <div class="text-[10px] text-gray-500">工程实力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">新加坡国立大学</div>
+                        <div class="text-[10px] text-gray-500">全球视野</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">腾讯 / 蔚来 / OPPO</div>
+                        <div class="text-[10px] text-gray-500">产业领导力</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">字节跳动</div>
+                        <div class="text-[10px] text-gray-500">AI创新</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm font-semibold">华为</div>
+                        <div class="text-[10px] text-gray-500">技术基建</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="text-center py-20 text-gray-600 text-xs font-light">
+        © 2026 MINDSINONE. All resources remit to the co-evolutionary future.
+    </footer>
+    <script>
+        function toggleLang() {
+            const enBlocks = document.querySelectorAll('.lang-en');
+            const zhBlocks = document.querySelectorAll('.lang-zh');
+            enBlocks.forEach(b => b.classList.toggle('hidden'));
+            zhBlocks.forEach(b => b.classList.toggle('hidden'));
+        }
+        
+        // Canvas粒子系统 - 变革狂潮 (创业者页面以琥珀色为主)
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 100;
+            
+            // 设置画布大小
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 粒子类
+            class Particle {
+                constructor() {
+                    this.reset();
+                }
+                
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.3;
+                    this.speedY = (Math.random() - 0.5) * 0.3;
+                    this.opacity = Math.random() * 0.5 + 0.1;
+                    // 创业者页面以琥珀色为主
+                    this.color = Math.random() > 0.3 ? '#ffbf00' : '#06b6d4';
+                }
+                
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    // 边界检测
+                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                        this.reset();
+                    }
+                }
+                
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            // 初始化粒子
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            
+            // 绘制连接线
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = particles[i].color;
+                            ctx.globalAlpha = (150 - distance) / 150 * 0.15;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                            ctx.globalAlpha = 1;
+                        }
+                    }
+                }
+            }
+            
+            // 动画循环
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+                
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            
+            initParticles();
+            animate();
+        })();
+        
+        // 滚动渐入动画
+        (function() {
+            const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+            
+            const revealOnScroll = function() {
+                scrollRevealElements.forEach(el => {
+                    const elementTop = el.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < window.innerHeight - elementVisible) {
+                        el.classList.add('revealed');
+                    }
+                });
+            };
+            
+            window.addEventListener('scroll', revealOnScroll);
+            revealOnScroll(); // 初始检查
+        })();
+    </script>
+</body>
+</html>
